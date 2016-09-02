@@ -1,5 +1,5 @@
 # ESIOS
-Access to the ESIOS (Spanish electricity market entity) data
+Access to the ESIOS (Spanish electricity market entity) data in python 3 (python 2.7 might work but it is not supported)
 
 This API is made to make it painless to access the market published data.
 
