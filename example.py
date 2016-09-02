@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     df[names[3]].plot(ax=ax1)  # demand
     ax1.set_xlabel('time')
-    ax1.set_ylabel('€')
+    ax1.set_ylabel('MW')
 
     # secondary axis
     ax2 = ax1.twinx()
