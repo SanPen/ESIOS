@@ -17,7 +17,7 @@ To use the ESIOS module, just do:
 
 `indicators_ = [1293, 600]  3 demand (MW) and SPOT price (€)`
 
-'names = esios.get_names(indicators_)`
+`names = esios.get_names(indicators_)`
 
 `dfmul, df_list, names = esios.get_multiple_series(indicators_, start_, end_)`
 
