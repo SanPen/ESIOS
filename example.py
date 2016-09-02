@@ -49,4 +49,4 @@ if __name__ == '__main__':
     df[names[0:3]].plot(ax=ax2)  # others
     ax2.set_ylabel('€')
 
-    plt.show()
+plt.show()
