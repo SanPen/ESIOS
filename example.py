@@ -1,5 +1,5 @@
 from ESIOS import *
-
+from matplotlib import pyplot as plt
 
 if __name__ == '__main__':
     # Request arguments
@@ -7,9 +7,9 @@ if __name__ == '__main__':
     end_ = '2015-12-31T23:59:00'
 
     # The token is unique: You should ask for yours to: Consultas Sios <consultasios@ree.es>
-    token = '5c7f9ca844f598ab7b86bffcad08803f78e9fc5bf3036eef33b5888877a04e38'
 
-    esios = ESIOS(token, True)
+    token = '615e6d8c80629b8eef25c8f3d0c36094e23db4ed50ce5458f3462129d7c46dba'
+    esios = ESIOS(token)
 
     # esios.save_indicators_table()
 
