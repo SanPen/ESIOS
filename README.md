@@ -21,10 +21,11 @@ indicators_ = [1293, 600]  # demand (MW) and SPOT price (€)
 names = esios.get_names(indicators_)
 
 dfmul, df_list, names = esios.get_multiple_series(indicators_, start_, end_)
-
 df = dfmul[names]  # get the actual series and neglect the rest of the info
 ```
 
 This is an example of what yu can get:
 
 ![Image of some indicators on December 2015](https://github.com/SanPen/ESIOS/blob/master/example.png)
+
+If you have any suggestion please write to: <santiago.penate.vera@gmail.com> (Español e Inglés)
