@@ -25,6 +25,14 @@ import datetime
 import pickle
 
 
+class PandasDataBase:
+    """
+    This class saves the downloaded data locally and expends it incrementally upon download calls from esios
+    """
+    def __init__(self):
+        print()
+
+
 class ESIOS(object):
     
     def __init__(self, token):
@@ -176,7 +184,7 @@ class ESIOS(object):
         
         df.to_excel(fname)
 
-    def __get_query_json__(self, indicator, start, end):
+    def __get_query_json__(self, indicator, start_str, end_str):
         """
         Get a JSON series
         :param indicator: series indicator
@@ -187,7 +195,7 @@ class ESIOS(object):
         # This is how the URL is built
 
         #  https://www.esios.ree.es/es/analisis/1293?vis=2&start_date=21-06-2016T00%3A00&end_date=21-06-2016T23%3A50&compare_start_date=20-06-2016T00%3A00&groupby=minutes10&compare_indicators=545,544#JSON
-        url = 'https://api.esios.ree.es/indicators/' + indicator + '?start_date=' + start + '&end_date=' + end
+        url = 'https://api.esios.ree.es/indicators/' + indicator + '?start_date=' + start_str + '&end_date=' + end_str
 
         # Perform the call
         req = urllib.request.Request(url, headers=self.__get_headers__())
@@ -210,16 +218,20 @@ class ESIOS(object):
         """
         # check types: Pass to string for the url
         if type(start) is datetime.datetime:
-            start = start.strftime(self.dateformat)
+            start_str = start.strftime(self.dateformat)
+        else:
+            start_str = start
         
         if type(end) is datetime.datetime:
-            start = end.strftime(self.dateformat)
+            end_str = end.strftime(self.dateformat)
+        else:
+            end_str = end
         
         if type(indicator) is int:
             indicator = str(indicator)
             
         # get the JSON data
-        result = self.__get_query_json__(indicator, start, end)
+        result = self.__get_query_json__(indicator, start_str, end_str)
 
         # transform the data
         d = result['indicator']['values']  # dictionary of values
@@ -254,31 +266,62 @@ class ESIOS(object):
         :param end: End date
         :return:
         """
-        df = None
+
         df_list = list()
         names = list()
-        for i in range(len(indicators)):
+        for indicator in indicators:
 
-            name = self.__indicators_name__[indicators[i]]
+            name = self.__indicators_name__[indicator]
             names.append(name)
+
             print('Parsing ' + name)
-            if i == 0:
-                # Assign the first indicator
-                df = self.get_data(indicators[i], start, end)
-                df = df[df['geo_id'].isin(self.allowed_geo_id)]  # select by geography
-                df.rename(columns={'value': name}, inplace=True)
-                df_list.append(df)
+
+            # download the series in a DataFrame
+            df_new = self.get_data(indicator, start, end)
+
+            if df_new is not None:
+                # the default name for the series is 'value' we must change it
+                df_new.rename(columns={'value': name}, inplace=True)
+
+                # save
+                file_handler = open(str(indicator) + ".pkl", "wb")
+                pickle.dump(df_new, file_handler)
+                file_handler.close()
+
+            df_list.append(df_new)
+
+        return df_list, names
+
+    def merge_series(self, df_list, names, pandas_sampling_interval='1H'):
+        """
+        Merge a list of separately downloaded DataFrames into a single one
+        :param df_list: List of ESIOS downloaded DataFrames
+        :param names: list with the names of the main series of each DataFrame
+        :param pandas_sampling_interval: Pandas interval for resampling (1 hour as default)
+        :return: Merged DataFrame
+        """
+
+        merged_df = None
+        print('merging')
+        for df, name in zip(df_list, names):
+            # print(name)
+
+            if df is not None:
+
+                if name == 'Precio mercado SPOT Diario':
+                    df = df[df.geo_id == 3]  # pick spain only
+
+                dfp = df[[name]].astype(float)  # .resample(pandas_sampling_interval).pad()
+                # dfp2 = pd.DataFrame(data=dfp.values, index=dfp.index, columns=[name])
+                if merged_df is None:
+                    merged_df = dfp
+                else:
+                    merged_df = merged_df.join(dfp)
             else:
-                # merge the newer indicators
-                df_new = self.get_data(indicators[i], start, end)
-                if df_new is not None:
-                    df_new = df_new[df_new['geo_id'].isin(self.allowed_geo_id)]  # select by geography
-                    df_new.rename(columns={'value': name}, inplace=True)
-#                    df = df.join(df_new[[name, 'datetime']], how='left', lsuffix='d'+name)
-                    df = df.join(df_new[name])
-                df_list.append(df_new)
-                
-        return df, df_list, names
+                print(name, ': The dataFrame is None')
+
+        return merged_df
+
 
 
 

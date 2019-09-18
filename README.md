@@ -25,7 +25,7 @@ dfmul, df_list, names = esios.get_multiple_series(indicators_, start_, end_)
 df = dfmul[names]  # get the actual series and neglect the rest of the info
 ```
 
-This is an example of what you can get:
+This is an example of what yu can get:
 
 ![Image of some indicators on December 2015](https://github.com/SanPen/ESIOS/blob/master/example.png)
 

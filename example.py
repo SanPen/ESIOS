@@ -17,8 +17,8 @@ from matplotlib import pyplot as plt
 
 if __name__ == '__main__':
     # Request arguments
-    start_ = '2015-12-01T00:00:01'
-    end_ = '2015-12-31T23:59:00'
+    end_ = datetime.datetime.today()
+    start_ = end_ - datetime.timedelta(days=30)
 
     # The token is unique: You should ask for yours to: Consultas Sios <consultasios@ree.es>
 
@@ -29,13 +29,17 @@ if __name__ == '__main__':
 
     #    indicators_ = [600, 672, 673, 674, 675, 676, 677, 680, 681, 682, 683, 767, 1192, 1193, 1293]
     indicators_ = list()
-    indicators_.append(682)  # Precio de Regulación Secundaria subir
-    indicators_.append(683)  # Precio de Regulación Secundaria bajar
+    # indicators_.append(682)  # Precio de Regulación Secundaria subir
+    # indicators_.append(683)  # Precio de Regulación Secundaria bajar
     indicators_.append(600)  # Precio mercado SPOT Diario
-    indicators_.append(1293)  # Demanda real
+    # indicators_.append(1293)  # Demanda real
+    indicators_.append(551)  # Eólica T.Real
     names = esios.get_names(indicators_)
     dfmul, df_list, names = esios.get_multiple_series(indicators_, start_, end_)
-    df = dfmul[names]  # get the actual series and neglect the rest of the info
+
+    df_merged = esios.merge_series(df_list, names)  # merge the DataFrames into a single one
+
+    df = df_merged[names]  # get the actual series and neglect the rest of the info
 
     # plot
     fig, ax1 = plt.subplots()
