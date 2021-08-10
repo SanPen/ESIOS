@@ -34,8 +34,8 @@ if __name__ == '__main__':
     indicators_.append(600)  # Precio mercado SPOT Diario
     # indicators_.append(1293)  # Demanda real
     indicators_.append(551)  # Eólica T.Real
-    names = esios.get_names(indicators_)
-    dfmul, df_list, names = esios.get_multiple_series(indicators_, start_, end_)
+    # names = esios.get_names(indicators_)
+    df_list, names = esios.get_multiple_series(indicators_, start_, end_)
 
     df_merged = esios.merge_series(df_list, names)  # merge the DataFrames into a single one
 
@@ -44,13 +44,13 @@ if __name__ == '__main__':
     # plot
     fig, ax1 = plt.subplots()
 
-    df[names[3]].plot(ax=ax1)  # demand
+    df[names[0]].plot(ax=ax1)  # demand
     ax1.set_xlabel('time')
     ax1.set_ylabel('MW')
 
     # secondary axis
     ax2 = ax1.twinx()
-    df[names[0:3]].plot(ax=ax2)  # others
+    df[names[0::]].plot(ax=ax2)  # others
     ax2.set_ylabel('€')
 
 plt.show()

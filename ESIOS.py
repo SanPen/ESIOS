@@ -252,7 +252,7 @@ class ESIOS(object):
             
             df = df.set_index('datetime_utc')  # Set the index column
             
-            del df.index.name  # to avoid the index name bullshit
+            # del df.index.name  # to avoid the index name bullshit
             
             return df
         else:
