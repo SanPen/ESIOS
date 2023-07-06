@@ -72,7 +72,7 @@ class ESIOS(object):
         headers['Accept'] = 'application/json; application/vnd.esios-api-v1+json'
         headers['Content-Type'] = 'application/json'
         headers['Host'] = 'api.esios.ree.es'
-        headers['Authorization'] = 'Token token=\"' + self.token + '\"'
+        headers['x-api-key'] = self.token
         headers['Cookie'] = ''
         return headers
 
