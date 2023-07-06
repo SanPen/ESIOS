@@ -23,18 +23,20 @@ import pandas as pd
 import numpy as np
 import datetime
 import pickle
+import urllib.request
 
 
 class PandasDataBase:
     """
     This class saves the downloaded data locally and expends it incrementally upon download calls from esios
     """
+
     def __init__(self):
         print()
 
 
 class ESIOS(object):
-    
+
     def __init__(self, token):
         """
         Class constructor
@@ -46,12 +48,12 @@ class ESIOS(object):
         self.token = token
 
         self.allowed_geo_id = [3, 8741]  # España y Peninsula
-        
+
         # standard format of a date for a query        
         self.dateformat = '%Y-%m-%dT%H:%M:%S'
-        
+
         # dictionary of available series
-        
+
         self.__offer_indicators_list = list()
         self.__analysis_indicators_list = list()
         self.__indicators_name__ = dict()
@@ -73,7 +75,7 @@ class ESIOS(object):
         headers['Authorization'] = 'Token token=\"' + self.token + '\"'
         headers['Cookie'] = ''
         return headers
-        
+
     def get_indicators(self):
         """
         Get the indicators and their name.
@@ -85,7 +87,8 @@ class ESIOS(object):
         if os.path.exists(fname):
             # read the existing indicators file
             with open(fname, "rb") as input_file:
-                all_indicators, self.__indicators_name__, self.__offer_indicators_list, self.__analysis_indicators_list = pickle.load(input_file)
+                all_indicators, self.__indicators_name__, self.__offer_indicators_list, self.__analysis_indicators_list = pickle.load(
+                    input_file)
         else:
             # create the indicators file querying the info to ESIOS
             """
@@ -128,7 +131,7 @@ class ESIOS(object):
             curl "https://api.esios.ree.es/indicators" -X GET
             -H "Accept: application/json; application/vnd.esios-api-v1+json"
             -H "Content-Type: application/json" -H "Host: api.esios.ree.es"
-            -H "Authorization: Token token=\"5c7f9ca844f598ab7b86bffcad08803f78e9fc5bf3036eef33b5888877a04e38\""
+            -H "Authorization: Token token=\"your_token\""
             -H "Cookie: "
             """
             url = 'https://api.esios.ree.es/indicators'
@@ -155,11 +158,12 @@ class ESIOS(object):
 
             # save the indictators
             with open(fname, "wb") as output_file:
-                dta = [all_indicators, self.__indicators_name__, self.__offer_indicators_list, self.__analysis_indicators_list]
+                dta = [all_indicators, self.__indicators_name__, self.__offer_indicators_list,
+                       self.__analysis_indicators_list]
                 pickle.dump(dta, output_file)
-        
+
         return all_indicators
-        
+
     def get_names(self, indicators_list):
         """
         Get a list of names of the given indicator indices
@@ -169,9 +173,9 @@ class ESIOS(object):
         names = list()
         for i in indicators_list:
             names.append(self.__indicators_name__[i])
-        
+
         return np.array(names, dtype=np.object)
-        
+
     def save_indicators_table(self, fname='indicadores.xlsx'):
         """
         Saves the list of indicators in an excel file for easy consultation
@@ -179,17 +183,17 @@ class ESIOS(object):
         :return:
         """
         data = self.__offer_indicators_list + self.__analysis_indicators_list
-        
+
         df = pd.DataFrame(data=data, columns=['Nombre', 'Indicador'])
-        
+
         df.to_excel(fname)
 
     def __get_query_json__(self, indicator, start_str, end_str):
         """
         Get a JSON series
         :param indicator: series indicator
-        :param start: Start date
-        :param end: End date
+        :param start_str: Start date
+        :param end_str: End date
         :return:
         """
         # This is how the URL is built
@@ -205,7 +209,7 @@ class ESIOS(object):
             except:
                 json_data = response.readall().decode('utf-8')
             result = json.loads(json_data)
-            
+
         return result
 
     def get_data(self, indicator, start, end):
@@ -221,43 +225,43 @@ class ESIOS(object):
             start_str = start.strftime(self.dateformat)
         else:
             start_str = start
-        
+
         if type(end) is datetime.datetime:
             end_str = end.strftime(self.dateformat)
         else:
             end_str = end
-        
+
         if type(indicator) is int:
             indicator = str(indicator)
-            
+
         # get the JSON data
         result = self.__get_query_json__(indicator, start_str, end_str)
 
         # transform the data
         d = result['indicator']['values']  # dictionary of values
-        
+
         if len(d) > 0:
             hdr = list(d[0].keys())  # headers    
             data = np.empty((len(d), len(hdr)), dtype=np.object)
-            
+
             for i in range(len(d)):  # iterate the data entries
                 for j in range(len(hdr)):  # iterate the headers
                     h = hdr[j]
                     val = d[i][h]
                     data[i, j] = val
-                    
+
             df = pd.DataFrame(data=data, columns=hdr)  # make the DataFrame
-            
+
             df['datetime_utc'] = pd.to_datetime(df['datetime_utc'])  # convert to datetime
-            
+
             df = df.set_index('datetime_utc')  # Set the index column
-            
+
             # del df.index.name  # to avoid the index name bullshit
-            
+
             return df
         else:
             return None
-    
+
     def get_multiple_series(self, indicators, start, end):
         """
         Get multiple series data
@@ -292,7 +296,8 @@ class ESIOS(object):
 
         return df_list, names
 
-    def merge_series(self, df_list, names, pandas_sampling_interval='1H'):
+    @staticmethod
+    def merge_series(df_list, names, pandas_sampling_interval='1H'):
         """
         Merge a list of separately downloaded DataFrames into a single one
         :param df_list: List of ESIOS downloaded DataFrames
@@ -321,7 +326,3 @@ class ESIOS(object):
                 print(name, ': The dataFrame is None')
 
         return merged_df
-
-
-
-
