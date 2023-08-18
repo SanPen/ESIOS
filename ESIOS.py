@@ -174,7 +174,7 @@ class ESIOS(object):
         for i in indicators_list:
             names.append(self.__indicators_name__[i])
 
-        return np.array(names, dtype=np.object)
+        return np.array(names)
 
     def save_indicators_table(self, fname='indicadores.xlsx'):
         """
@@ -200,8 +200,7 @@ class ESIOS(object):
 
         #  https://www.esios.ree.es/es/analisis/1293?vis=2&start_date=21-06-2016T00%3A00&end_date=21-06-2016T23%3A50&compare_start_date=20-06-2016T00%3A00&groupby=minutes10&compare_indicators=545,544#JSON
         url = 'https://api.esios.ree.es/indicators/' + indicator + '?start_date=' + start_str + '&end_date=' + end_str
-
-        # Perform the call
+        result = None
         req = urllib.request.Request(url, headers=self.__get_headers__())
         with urllib.request.urlopen(req) as response:
             try:
@@ -209,7 +208,6 @@ class ESIOS(object):
             except:
                 json_data = response.readall().decode('utf-8')
             result = json.loads(json_data)
-
         return result
 
     def get_data(self, indicator, start, end):
@@ -239,18 +237,8 @@ class ESIOS(object):
 
         # transform the data
         d = result['indicator']['values']  # dictionary of values
-
         if len(d) > 0:
-            hdr = list(d[0].keys())  # headers    
-            data = np.empty((len(d), len(hdr)), dtype=np.object)
-
-            for i in range(len(d)):  # iterate the data entries
-                for j in range(len(hdr)):  # iterate the headers
-                    h = hdr[j]
-                    val = d[i][h]
-                    data[i, j] = val
-
-            df = pd.DataFrame(data=data, columns=hdr)  # make the DataFrame
+            df = pd.DataFrame(d)
 
             df['datetime_utc'] = pd.to_datetime(df['datetime_utc'])  # convert to datetime
 
@@ -312,12 +300,11 @@ class ESIOS(object):
             # print(name)
 
             if df is not None:
-
                 if name == 'Precio mercado SPOT Diario':
                     df = df[df.geo_id == 3]  # pick spain only
 
                 dfp = df[[name]].astype(float)  # .resample(pandas_sampling_interval).pad()
-                # dfp2 = pd.DataFrame(data=dfp.values, index=dfp.index, columns=[name])
+
                 if merged_df is None:
                     merged_df = dfp
                 else:
