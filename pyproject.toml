@@ -1,0 +1,57 @@
+[tool.poetry]
+name = "pyesios"
+version = "0.1.1"
+description = "Access to the ESIOS data, the Spanish electricity market entity."
+authors = ["Santiago Peñate Vera <santiago.penate.vera@gmail.com>"]
+license = "LICENSE.txt"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pandas = "*"
+numpy = "*"
+matplotlib = {version = "*", optional=true}
+
+[tool.poetry.extras]
+graphs = ["matplotlib"]
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "*"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+poetry = "*"
+ruff = "*"
+black = "*"
+isort = "*"
+
+
+[tool.poetry.group.tests]
+optional = true
+
+[tool.poetry.group.tests.dependencies]
+pytest = "*"
+
+
+[build-system]
+requires = ["setuptools","poetry"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 79
+
+[tool.ruff]
+line-length = 79
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests",]
+pythonpath = ["."]
