@@ -127,7 +127,8 @@ class ESIOS(object):
             with urllib.request.urlopen(req) as response:
                 try:
                     json_data = response.read().decode("utf-8")
-                except:
+                except Exception as e:
+                    print(e)
                     json_data = response.readall().decode("utf-8")
 
                 result = json.loads(json_data)
@@ -157,7 +158,8 @@ class ESIOS(object):
             with urllib.request.urlopen(req) as response:
                 try:
                     json_data = response.read().decode("utf-8")
-                except:
+                except Exception as e:
+                    print(e)
                     json_data = response.readall().decode("utf-8")
                 result = json.loads(json_data)
 
@@ -233,7 +235,8 @@ class ESIOS(object):
         with urllib.request.urlopen(req) as response:
             try:
                 json_data = response.read().decode("utf-8")
-            except:
+            except Exception as e:
+                print(e)
                 json_data = response.readall().decode("utf-8")
             result = json.loads(json_data)
         return result
