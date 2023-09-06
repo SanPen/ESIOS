@@ -30,3 +30,18 @@ This is an example of what you can get:
 ![Image of some indicators on December 2015](https://github.com/SanPen/ESIOS/blob/master/example.png)
 
 If you have any suggestion please write to: <santiago.penate.vera@gmail.com> (Español e Inglés)
+
+To install ESIOS package
+
+```
+pip install pyesios
+
+# To build the graphs in the examples
+pip install pyesios[graphs]
+```
+
+## [Contribuiting](./CONTRIBUITING.md) 
+
+
+
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)

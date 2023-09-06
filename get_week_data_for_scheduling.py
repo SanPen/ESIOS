@@ -12,21 +12,27 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-from ESIOS import *
-from matplotlib import pyplot as plt
+import datetime
 import pickle
-plt.style.use('ggplot')
 
-if __name__ == '__main__':
+import pandas as pd
+from matplotlib import pyplot as plt
+
+from pyesios import ESIOS
+
+plt.style.use("ggplot")
+
+if __name__ == "__main__":
     # Request arguments
     # end_ = datetime.datetime.today()
     # start_ = end_ - datetime.timedelta(days=7)
     start_ = datetime.datetime(2016, 1, 1)
     end_ = datetime.datetime(2017, 1, 1)
 
-    # The token is unique: You should ask for yours to: Consultas Sios <consultasios@ree.es>
+    # The token is unique: You should ask for yours to:
+    #   Consultas Sios <consultasios@ree.es>
 
-    token = '5c7f9ca844f598ab7b86bffcad08803f78e9fc5bf3036eef33b5888877a04e38'
+    token = "5c7f9ca844f598ab7b86bffcad08803f78e9fc5bf3036eef33b5888877a04e38"
     esios = ESIOS(token)
 
     # esios.save_indicators_table()
@@ -36,9 +42,10 @@ if __name__ == '__main__':
     # indicators_.append(676)  # Precio Regulación Terciaria bajar
     indicators_.append(634)  # Precio Banda de regulación secundaria
     indicators_.append(600)  # Precio mercado SPOT Diario
-    # indicators_.append(631)  # Requerimientos Banda de regulación secundaria a bajar
-    # indicators_.append(630)  # Requerimientos Banda de regulación secundaria a subir
-
+    # Requerimientos Banda de regulación secundaria a bajar
+    # indicators_.append(631)
+    # Requerimientos Banda de regulación secundaria a subir
+    # indicators_.append(630)
     # indicators_.append(1293)  # Demanda real
     # indicators_.append(550)  # Generación T.Real C.Combinado
     # indicators_.append(547)  # Generación T.Real carbón
@@ -65,12 +72,12 @@ if __name__ == '__main__':
 
     # merge the DataFrames
     df_merged = esios.merge_series(df_list, names)
-    xls_path = '2016_data.xlsx'
+    xls_path = "2016_data.xlsx"
 
     writer = pd.ExcelWriter(xls_path)
     for i, df in enumerate(df_list):
         df.to_excel(writer, str(indicators_[i]))
-    df_merged[names].to_excel(writer, 'Merged')
+    df_merged[names].to_excel(writer, "Merged")
     writer.save()
 
     # # plot
