@@ -1,0 +1,38 @@
+name: Build Pages
+on:
+    workflow_dispatch:
+    push:
+        branches:
+        - main  
+
+jobs:
+  build-html:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout this repo
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+            filters: |
+                package:
+                    - 'pyesios/**'
+                tests:
+                    - 'tests/**'
+ 
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4.6.0
+        with:
+          python-version: '3.10'
+      - name: Build Pages
+        if: ${{steps.filter.outputs.package == 'true' }}
+        run: |
+            make init-docs
+            make docs
+        
+      - name: Deploy Pages
+        if: ${{steps.filter.outputs.package == 'true' }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/build/html 
