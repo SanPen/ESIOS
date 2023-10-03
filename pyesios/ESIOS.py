@@ -211,7 +211,7 @@ class ESIOS(object):
 
         df.to_excel(fname)
 
-    def __get_query_json__(self, indicator, start_str, end_str):
+    def __get_query_json__(self, indicator, start_str, end_str, **options):
         """
         Get a JSON series
         :param indicator: series indicator
@@ -230,6 +230,10 @@ class ESIOS(object):
             + "&end_date="
             + end_str
         )
+
+        for param, value in options.items():
+            url += f"&{param}={value}"
+
         result = None
         req = urllib.request.Request(url, headers=self.__get_headers__())
         with urllib.request.urlopen(req) as response:
@@ -241,7 +245,7 @@ class ESIOS(object):
             result = json.loads(json_data)
         return result
 
-    def get_data(self, indicator, start, end):
+    def get_data(self, indicator, start, end, **options):
         """
 
         :param indicator: Series indicator
@@ -264,7 +268,7 @@ class ESIOS(object):
             indicator = str(indicator)
 
         # get the JSON data
-        result = self.__get_query_json__(indicator, start_str, end_str)
+        result = self.__get_query_json__(indicator, start_str, end_str, **options)
 
         # transform the data
         d = result["indicator"]["values"]  # dictionary of values
@@ -283,7 +287,7 @@ class ESIOS(object):
         else:
             return None
 
-    def get_multiple_series(self, indicators, start, end):
+    def get_multiple_series(self, indicators, start, end, **options):
         """
         Get multiple series data
         :param indicators: List of indicators
@@ -301,7 +305,7 @@ class ESIOS(object):
             print("Parsing " + name)
 
             # download the series in a DataFrame
-            df_new = self.get_data(indicator, start, end)
+            df_new = self.get_data(indicator, start, end, **options)
 
             if df_new is not None:
                 # the default name for the series is 'value' we must change it
