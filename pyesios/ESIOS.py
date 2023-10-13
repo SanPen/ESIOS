@@ -268,7 +268,9 @@ class ESIOS(object):
             indicator = str(indicator)
 
         # get the JSON data
-        result = self.__get_query_json__(indicator, start_str, end_str, **options)
+        result = self.__get_query_json__(
+            indicator, start_str, end_str, **options
+        )
 
         # transform the data
         d = result["indicator"]["values"]  # dictionary of values
