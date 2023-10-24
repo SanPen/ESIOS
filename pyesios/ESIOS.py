@@ -22,10 +22,11 @@ import json
 import pickle
 import urllib
 import urllib.request
-
+import warnings
 import numpy as np
 import pandas as pd
 
+ALLOWED_TIMEGROUPS = ["minutes5", "minutes10", "minutes15", "hour", "day", "month", "year"]
 
 class PandasDataBase:
     """
@@ -211,7 +212,7 @@ class ESIOS(object):
 
         df.to_excel(fname)
 
-    def __get_query_json__(self, indicator, start_str, end_str, **options):
+    def __get_query_json__(self, indicator, start_str, end_str, timegroup="hour", **options):
         """
         Get a JSON series
         :param indicator: series indicator
@@ -219,6 +220,11 @@ class ESIOS(object):
         :param end_str: End date
         :return:
         """
+        if timegroup not in ALLOWED_TIMEGROUPS:
+            warn_msg = f"{timegroup} not in allowed groups: {ALLOWED_TIMEGROUPS}. \n Defaulting to hour"
+            warnings.warn(warn_msg)
+            timegroup = "hour"
+
         # This is how the URL is built
 
         #  https://www.esios.ree.es/es/analisis/1293?vis=2&start_date=21-06-2016T00%3A00&end_date=21-06-2016T23%3A50&compare_start_date=20-06-2016T00%3A00&groupby=minutes10&compare_indicators=545,544#JSON
@@ -229,6 +235,8 @@ class ESIOS(object):
             + start_str
             + "&end_date="
             + end_str
+            + "&groupby="
+            + timegroup
         )
 
         for param, value in options.items():
