@@ -75,16 +75,32 @@ class ESIOS(object):
         :return: A dictionary with the headers.
         :rtype: dict
         """
-        # Prepare the arguments of the call
-        headers = dict()
-        headers[
-            "Accept"
-        ] = "application/json; application/vnd.esios-api-v1+json"
-        headers["Content-Type"] = "application/json"
-        headers["Host"] = "api.esios.ree.es"
-        headers["x-api-key"] = self.token
-        headers["Cookie"] = ""
+        headers = {
+            "Accept": "application/json; application/vnd.esios-api-v1+json",
+            "Content-Type": "application/json",
+            "Host": "api.esios.ree.es",
+            "x-api-key": self.token,
+            "Cookie": ""
+        }
         return headers
+
+    def __make_request__(self, url):
+        """
+        Makes an HTTP request to the given URL and returns the JSON response.
+        :param url: The URL to make the request to.
+        :type url: str
+        :return: The JSON response.
+        :rtype: dict
+        """
+        headers = self.__get_headers__()
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req) as response:
+            try:
+                json_data = response.read().decode("utf-8")
+            except Exception as e:
+                warnings.warn(e)
+                json_data = response.readall().decode("utf-8")
+        return json.loads(json_data)
 
     def get_indicators(self):
         """
@@ -123,15 +139,8 @@ class ESIOS(object):
             url = "https://api.esios.ree.es/offer_indicators"
 
             # Perform the call
-            req = urllib.request.Request(url, headers=self.__get_headers__())
-            with urllib.request.urlopen(req) as response:
-                try:
-                    json_data = response.read().decode("utf-8")
-                except Exception as e:
-                    print(e)
-                    json_data = response.readall().decode("utf-8")
+            result = self.__make_request__(url)
 
-                result = json.loads(json_data)
 
             # fill the dictionary
             indicators = dict()
@@ -154,14 +163,7 @@ class ESIOS(object):
             """
             url = "https://api.esios.ree.es/indicators"
 
-            req = urllib.request.Request(url, headers=self.__get_headers__())
-            with urllib.request.urlopen(req) as response:
-                try:
-                    json_data = response.read().decode("utf-8")
-                except Exception as e:
-                    print(e)
-                    json_data = response.readall().decode("utf-8")
-                result = json.loads(json_data)
+            result = self.__make_request__(url)
 
             # continue filling the dictionary
             indicators = dict()
@@ -242,15 +244,7 @@ class ESIOS(object):
         for param, value in options.items():
             url += f"&{param}={value}"
 
-        result = None
-        req = urllib.request.Request(url, headers=self.__get_headers__())
-        with urllib.request.urlopen(req) as response:
-            try:
-                json_data = response.read().decode("utf-8")
-            except Exception as e:
-                print(e)
-                json_data = response.readall().decode("utf-8")
-            result = json.loads(json_data)
+        result = self.__make_request__(url)
         return result
 
     def _get_data(self, indicator, start, end, timegroup="hour", **options):
@@ -338,22 +332,27 @@ class ESIOS(object):
             date_pairs = []
             all_dfs = []
             # Loop over the date range
+            last=False
             for i in range(len(date_range)-1):
+                if last:
+                    continue
                 # Add the date pair to the list
                 start_str = date_range[i].strftime(self.dateformat)
                 # The API is not workinf for 2023 on
                 # https://github.com/SanPen/ESIOS/issues/10
-                if date_range[i+1].year>2022:
-                    date_range[i+1] = date_range[i+1].replace(year=2022)
+                if date_range[i+1].year>2021:
+                    date_range[i+1] = date_range[i+1].replace(year=2021)
                     date_range[i+1] = date_range[i+1].replace(month=12)
+                    date_range[i+1] = date_range[i+1].replace(day=31)
                     # Set the time to the last minute of the day
                     date_range[i+1] = date_range[i+1].replace(hour=23, minute=59, second=59)
                     # Convert the datetime object back to a string
                     date_str = date_range[i+1].strftime("%Y-%m-%dT%H:%M:%S")
+                    last=True
 
                 end_str = date_range[i+1].strftime(self.dateformat)
                 all_dfs.append(self._get_data(indicator, start_str, end_str,timegroup=timegroup, **options))
-                date_pairs.append((date_range[i], date_range[i+1]))
+                    
             return pd.concat(all_dfs, ignore_index=True)
         else:
             return self._get_data(indicator, start_str, end_str,timegroup=timegroup, **options)
