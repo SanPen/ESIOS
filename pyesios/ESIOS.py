@@ -338,7 +338,7 @@ class ESIOS(object):
                     continue
                 # Add the date pair to the list
                 start_str = date_range[i].strftime(self.dateformat)
-                # The API is not workinf for 2023 on
+                # The API is not workinf for 2022 on
                 # https://github.com/SanPen/ESIOS/issues/10
                 if date_range[i+1].year>2021:
                     date_range[i+1] = date_range[i+1].replace(year=2021)
