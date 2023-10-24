@@ -1,6 +1,7 @@
 def time_diff_in_group(start_date, end_date, timegroup):
     """
-    Calculate the difference between two datetime objects based on the specified time group.
+    Calculate the difference between two datetime objects based on the
+        specified time group.
 
     :param start_date: The start datetime object.
     :type start_date: datetime.datetime

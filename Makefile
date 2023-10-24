@@ -40,13 +40,12 @@ test-coverage:
 	poetry run pytest --cov=$(PROJECT) ${TEST_PATH} --cov-report term-missing
 
 check:
-	poetry run black --check --diff .
 	poetry run isort --check --diff .
-	poetry run ruff check .
+	poetry run ruff .
 
 lint-fix:
-	poetry run black .
 	poetry run isort .
+	poetry run ruff . --fix
 
 update:
 	poetry update
