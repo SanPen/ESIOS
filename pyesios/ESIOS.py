@@ -355,6 +355,8 @@ class ESIOS(object):
                 # The API is not workinf for 2022 on
                 # https://github.com/SanPen/ESIOS/issues/10
                 if date_range[i + 1].year > 2021:
+                    warnings.warn("API not working for anything after 2022")
+                    warnings.warn("Setting to last hour of 2021")
                     date_range[i + 1] = date_range[i + 1].replace(year=2021)
                     date_range[i + 1] = date_range[i + 1].replace(month=12)
                     date_range[i + 1] = date_range[i + 1].replace(day=31)
