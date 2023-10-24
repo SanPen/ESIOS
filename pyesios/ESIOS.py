@@ -26,6 +26,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from pyesios.utils import time_diff_in_group
 ALLOWED_TIMEGROUPS = ["minutes5", "minutes10", "minutes15", "hour", "day", "month", "year"]
 
 class PandasDataBase:
@@ -48,12 +49,10 @@ class ESIOS(object):
         # The token is unique: You should ask for yours to:
         #   Consultas Sios <consultasios@ree.es>
         if token is None:
-            print(
-                (
+            raise ValueError(
                     "The token is unique: You should ask for yours to:"
                     "Consultas Sios <consultasios@ree.es>"
                 )
-            )
         self.token = token
 
         self.allowed_geo_id = [3, 8741]  # España y Peninsula
@@ -62,7 +61,6 @@ class ESIOS(object):
         self.dateformat = "%Y-%m-%dT%H:%M:%S"
 
         # dictionary of available series
-
         self.__offer_indicators_list = list()
         self.__analysis_indicators_list = list()
         self.__indicators_name__ = dict()
@@ -74,7 +72,8 @@ class ESIOS(object):
     def __get_headers__(self):
         """
         Prepares the CURL headers
-        :return:
+        :return: A dictionary with the headers.
+        :rtype: dict
         """
         # Prepare the arguments of the call
         headers = dict()
@@ -220,6 +219,8 @@ class ESIOS(object):
         :param end_str: End date
         :return:
         """
+        timegroup = options.pop("groupby", timegroup)
+
         if timegroup not in ALLOWED_TIMEGROUPS:
             warn_msg = f"{timegroup} not in allowed groups: {ALLOWED_TIMEGROUPS}. \n Defaulting to hour"
             warnings.warn(warn_msg)
@@ -238,7 +239,6 @@ class ESIOS(object):
             + "&groupby="
             + timegroup
         )
-
         for param, value in options.items():
             url += f"&{param}={value}"
 
@@ -253,7 +253,7 @@ class ESIOS(object):
             result = json.loads(json_data)
         return result
 
-    def get_data(self, indicator, start, end, **options):
+    def _get_data(self, indicator, start, end, timegroup="hour", **options):
         """
 
         :param indicator: Series indicator
@@ -261,23 +261,14 @@ class ESIOS(object):
         :param end: End date
         :return:
         """
-        # check types: Pass to string for the url
-        if isinstance(start, datetime.datetime):
-            start_str = start.strftime(self.dateformat)
-        else:
-            start_str = start
 
-        if isinstance(end, datetime.datetime):
-            end_str = end.strftime(self.dateformat)
-        else:
-            end_str = end
 
         if isinstance(indicator, int):
             indicator = str(indicator)
 
         # get the JSON data
         result = self.__get_query_json__(
-            indicator, start_str, end_str, **options
+            indicator, start, end, timegroup=timegroup,**options
         )
 
         # transform the data
@@ -297,7 +288,77 @@ class ESIOS(object):
         else:
             return None
 
-    def get_multiple_series(self, indicators, start, end, **options):
+    def get_data(self, indicator, start, end, timegroup="hour",**options):
+        """
+
+        :param indicator: Series indicator
+        :param start: Start date
+        :param end: End date
+        :return:
+        """
+        # The API does not work with more than 2 years hourly data
+        # Lets assume that the problem is with 2*365*24 data point
+        # Wall to prevent the multiple year error
+        N_max = 2*365*24
+
+        # check types: Pass to string for the url
+        if isinstance(start, datetime.datetime):
+            start_str = start.strftime(self.dateformat)
+        else:
+            start_str = start
+            start = datetime.datetime.strptime(start, "%d-%m-%YT%H")
+
+        if isinstance(end, datetime.datetime):
+            end_str = end.strftime(self.dateformat)
+        else:
+            end_str = end
+            end = datetime.datetime.strptime(end, "%d-%m-%YT%H")
+
+
+
+        time_diff = time_diff_in_group(start, end, timegroup)
+
+        if time_diff>N_max:
+            # The dates are distribuited per max two years.
+            # This is because the API breaks when asking more than two years at a time.
+
+            # Create a date range with a frequency of 2 years
+            date_range = pd.date_range(start=start_str, end=end_str, freq='1AS', inclusive="both")
+            date_range = [f for f in date_range]
+            if start<date_range[0]:
+                date_range.insert(0, start)
+            else:
+                date_range[0] = start
+            if end>date_range[-1]:
+                date_range.append(end)
+            else:
+                date_range[-1] = end
+
+            # Create a list to store the date pairs
+            date_pairs = []
+            all_dfs = []
+            # Loop over the date range
+            for i in range(len(date_range)-1):
+                # Add the date pair to the list
+                start_str = date_range[i].strftime(self.dateformat)
+                # The API is not workinf for 2023 on
+                # https://github.com/SanPen/ESIOS/issues/10
+                if date_range[i+1].year>2022:
+                    date_range[i+1] = date_range[i+1].replace(year=2022)
+                    date_range[i+1] = date_range[i+1].replace(month=12)
+                    # Set the time to the last minute of the day
+                    date_range[i+1] = date_range[i+1].replace(hour=23, minute=59, second=59)
+                    # Convert the datetime object back to a string
+                    date_str = date_range[i+1].strftime("%Y-%m-%dT%H:%M:%S")
+
+                end_str = date_range[i+1].strftime(self.dateformat)
+                all_dfs.append(self._get_data(indicator, start_str, end_str,timegroup=timegroup, **options))
+                date_pairs.append((date_range[i], date_range[i+1]))
+            return pd.concat(all_dfs, ignore_index=True)
+        else:
+            return self._get_data(indicator, start_str, end_str,timegroup=timegroup, **options)
+
+    def get_multiple_series(self, indicators, start, end, timegroup="hour",**options):
         """
         Get multiple series data
         :param indicators: List of indicators
@@ -315,7 +376,7 @@ class ESIOS(object):
             print("Parsing " + name)
 
             # download the series in a DataFrame
-            df_new = self.get_data(indicator, start, end, **options)
+            df_new = self.get_data(indicator, start, end, timegroup=timegroup, **options)
 
             if df_new is not None:
                 # the default name for the series is 'value' we must change it
