@@ -41,7 +41,7 @@ jobs:
     - name: Test with pytest
       id: pytest_test
       if: ${{steps.filter.outputs.package == 'true' }} || ${{steps.filter.outputs.tests == 'true' }} 
-      with:
+      env:
         ESIOS_API_TOKEN: ${{ secrets.ESIOS_API_TOKEN }}
       run: |
         make test
