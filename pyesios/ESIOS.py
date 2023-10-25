@@ -87,7 +87,7 @@ class ESIOS(object):
         :rtype: dict
         """
         headers = {
-            "Accept": "application/json; application/vnd.esios-api-v1+json",
+            "Accept": "application/json; application/vnd.esios-api-v2+json",
             "Content-Type": "application/json",
             "Host": "api.esios.ree.es",
             "x-api-key": self.token,
@@ -429,8 +429,9 @@ class ESIOS(object):
         :param df_list: List of ESIOS downloaded DataFrames
         :param names: list with the names of the main series of each DataFrame
         :param pandas_sampling_interval: Pandas interval for resampling
-            (1 hour as default)
+        (1 hour as default)
         :return: Merged DataFrame
+
         """
 
         merged_df = None

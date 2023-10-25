@@ -5,6 +5,12 @@ description = "Access to the ESIOS data, the Spanish electricity market entity."
 authors = ["Santiago Peñate Vera <santiago.penate.vera@gmail.com>"]
 license = "LICENSE.txt"
 readme = "README.md"
+homepage = "https://github.com/SanPen/ESIOS"
+repository = "https://github.com/SanPen/ESIOS"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/SanPen/ESIOS/issues"
+"Source Code" = "https://github.com/SanPen/ESIOS"
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -47,6 +53,9 @@ line-length = 79
 
 [tool.ruff]
 line-length = 79
+select = ["E", "F", "B", "Q"]
+show-fixes = true
+ignore = ["E501", "B028"]
 
 [tool.isort]
 multi_line_output = 3
