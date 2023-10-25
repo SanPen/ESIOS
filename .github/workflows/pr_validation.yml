@@ -43,3 +43,5 @@ jobs:
       if: ${{steps.filter.outputs.package == 'true' }} || ${{steps.filter.outputs.tests == 'true' }} 
       run: |
         make test
+      with:
+        ESIOS_API_TOKEN: ${{ secrets.ESIOS_API_TOKEN }}
