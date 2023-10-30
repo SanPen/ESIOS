@@ -54,4 +54,4 @@ build: update check test docs
 	poetry build
 
 release: build
-	poetry release
+	poetry publish

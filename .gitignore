@@ -5,3 +5,4 @@
 *.pickle
 conf
 docs/*
+dist*
