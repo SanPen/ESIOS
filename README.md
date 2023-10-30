@@ -45,3 +45,7 @@ pip install pyesios[graphs]
 
 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
+## WARNING
+
+The API is having troubles with request made from 2022 on, There is a limiter in place to not go to those dates.
