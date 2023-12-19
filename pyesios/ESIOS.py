@@ -22,6 +22,8 @@ import json
 import pickle
 import urllib
 import urllib.request
+import urllib.parse
+import urllib.error
 import warnings
 
 import numpy as np
@@ -105,12 +107,34 @@ class ESIOS(object):
         """
         headers = self.__get_headers__()
         req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req) as response:
-            try:
-                json_data = response.read().decode("utf-8")
-            except Exception as e:
-                warnings.warn(e)
-                json_data = response.readall().decode("utf-8")
+
+        # with urllib.request.urlopen(req) as response:
+        #     try:
+        #         json_data = response.read().decode("utf-8")
+        #     except Exception as e:
+        #         warnings.warn(e)
+        #         json_data = response.readall().decode("utf-8")
+
+        """
+        In order to handle redirections, follow:
+        https://stackoverflow.com/questions/62384020/python-3-7-urllib-request-doesnt-follow-redirect-url
+        """
+
+        try:
+            response = urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            if e.status != 307:
+                raise  # not a status code that can be handled here
+            redirected_url = urllib.parse.urljoin(url, e.headers['Location'])
+            response = urllib.request.urlopen(redirected_url)
+            print('Redirected -> %s' % redirected_url)  # the original redirected url
+
+        try:
+            json_data = response.read().decode("utf-8")
+        except Exception as e:
+            warnings.warn(e)
+            json_data = response.readall().decode("utf-8")
+
         return json.loads(json_data)
 
     def get_indicators(self):
