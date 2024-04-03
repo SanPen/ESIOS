@@ -12,6 +12,14 @@ pyesios.ESIOS module
    :undoc-members:
    :show-inheritance:
 
+pyesios.utils module
+--------------------
+
+.. automodule:: pyesios.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
