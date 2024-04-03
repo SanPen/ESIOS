@@ -21,9 +21,9 @@ import datetime
 import json
 import pickle
 import urllib
-import urllib.request
-import urllib.parse
 import urllib.error
+import urllib.parse
+import urllib.request
 import warnings
 
 import numpy as np
@@ -125,9 +125,11 @@ class ESIOS(object):
         except urllib.error.HTTPError as e:
             if e.status != 307:
                 raise  # not a status code that can be handled here
-            redirected_url = urllib.parse.urljoin(url, e.headers['Location'])
+            redirected_url = urllib.parse.urljoin(url, e.headers["Location"])
             response = urllib.request.urlopen(redirected_url)
-            print('Redirected -> %s' % redirected_url)  # the original redirected url
+            print(
+                "Redirected -> %s" % redirected_url
+            )  # the original redirected url
 
         try:
             json_data = response.read().decode("utf-8")
@@ -307,7 +309,10 @@ class ESIOS(object):
         d = result["indicator"]["values"]  # dictionary of values
         if len(d) > 0:
             df = pd.DataFrame(d)
-
+            not_utc_index = df[df["datetime_utc"].str.len() > 21].index
+            df.loc[not_utc_index, "datetime_utc"] = pd.to_datetime(
+                df.loc[not_utc_index]["datetime_utc"]
+            ).dt.strftime("%Y-%m-%dT%H:%M:%SZ")
             df["datetime_utc"] = pd.to_datetime(
                 df["datetime_utc"]
             )  # convert to datetime
