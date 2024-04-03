@@ -91,7 +91,7 @@ class ESIOS(object):
         headers = {
             "Accept": "application/json; application/vnd.esios-api-v2+json",
             "Content-Type": "application/json",
-            "Host": "api.esios.ree.es",
+            # "Host": "api.esios.ree.es",
             "x-api-key": self.token,
             "Cookie": "",
         }
@@ -272,6 +272,8 @@ class ESIOS(object):
         # This is how the URL is built
 
         #  https://www.esios.ree.es/es/analisis/1293?vis=2&start_date=21-06-2016T00%3A00&end_date=21-06-2016T23%3A50&compare_start_date=20-06-2016T00%3A00&groupby=minutes10&compare_indicators=545,544#JSON
+        #  https://www.esios.ree.es/es/analisis/1293?vis=2&start_date=21-06-2022T00%3A00&end_date=21-06-2022T23%3A50&compare_start_date=20-06-2022T00%3A00&groupby=minutes10&compare_indicators=545,544#JSON
+
         url = (
             "https://api.esios.ree.es/indicators/"
             + indicator
@@ -375,28 +377,9 @@ class ESIOS(object):
             # Create a list to store the date pairs
             all_dfs = []
             # Loop over the date range
-            last = False
             for i in range(len(date_range) - 1):
-                if last:
-                    continue
                 # Add the date pair to the list
                 start_str = date_range[i].strftime(self.dateformat)
-                # The API is not workinf for 2022 on
-                # https://github.com/SanPen/ESIOS/issues/10
-                if date_range[i + 1].year > 2021:
-                    warnings.warn("API not working for anything after 2022")
-                    warnings.warn("Setting to last hour of 2021")
-                    date_range[i + 1] = date_range[i + 1].replace(year=2021)
-                    date_range[i + 1] = date_range[i + 1].replace(month=12)
-                    date_range[i + 1] = date_range[i + 1].replace(day=31)
-                    # Set the time to the last minute of the day
-                    date_range[i + 1] = date_range[i + 1].replace(
-                        hour=23, minute=59, second=59
-                    )
-                    # Convert the datetime object back to a string
-                    date_range[i + 1].strftime("%Y-%m-%dT%H:%M:%S")
-                    last = True
-
                 end_str = date_range[i + 1].strftime(self.dateformat)
                 all_dfs.append(
                     self._get_data(
